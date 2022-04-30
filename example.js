@@ -21,27 +21,49 @@ const data = [
 
 // * default arugments
 // * JavaScript switch-case
-function processTitles(inputString, format = "skeletal") {
-  const length = 36; // length of the image file name.
-  switch (format) {
-    case "skeletal":
-      format = format.slice(0, length).split(" ").join("-");
-  }
-  return format;
+function removePunctuation(inputString) {
+  //   var s = "This., -/ is #! an $ % ^ & * example ;: {} of a = -_ string with `~)() punctuation";
+  let punctuationless = inputString.replace(
+    /[.,\/#!$%\^&\*;:{}=\-_`~()|]/g,
+    ""
+  );
+  let finalString = punctuationless.replace(/\s{2,}/g, " ");
+
+  return finalString;
+}
+
+function processImageTitles(title) {
+  let punctuationless = removePunctuation(title);
+  const length = 36; // limit the length of the file name to 36 words
+  return punctuationless.slice(0, length).split(" ").join("-");
 }
 
 // * check for image existance
 // * default arguments
-const getImages = async () => {
+// const url, path;
+
+// url = "https://www.google.com/";
+path = "/Users/ptrn158/Documents/ripoff-ejs/public/img/";
+
+const getImages = async (url, title) => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
-  await page.goto("https://www.google.com/");
-  await page.screenshot({ path: "./img/example.png" });
+  await page.goto(url);
+  await page.setViewport({ width: 320, height: 480 });
+  // await page.waitForNavigation({ waitUntil: "networkidle2" });
+  await page.screenshot({
+    path: `${path}${processImageTitles(title)}.png`,
+    fullPage: false,
+  });
 
   await browser.close();
 };
 
-getImages();
+let title = data.map((x) => x.title);
+let url = data.map((y) => y.url);
+for (let i = 0; i < title.length; i++) {
+  getImages(url[i], processImageTitles(title[i]));
+}
 
 // IIFE
 // (async () => {
